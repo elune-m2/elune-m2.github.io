@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentation · Elune M2</title>
+<meta name="description" content="Feature reference and how-to guide for Elune M2, the Blender add-on for importing, editing and exporting World of Warcraft M2 models.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Spectral:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-label="Toggle contents">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <a class="brand" href="index.html">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 9.2 13.9A8 8 0 0 1 10.1 2.2 10 10 0 0 0 12 2Z"/></svg>
+    Elune M2 <span class="brand-sub">Blender add-on</span>
+  </a>
+  <nav aria-label="Site">
+    <a href="index.html">Home</a>
+    <a href="documentation.html" aria-current="page">Documentation</a>
+    <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch light / dark theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </nav>
+</header>
+
+<div class="layout">
+
+<aside class="sidebar" aria-label="Contents">
+  <input class="filter" type="search" placeholder="Filter topics…" data-toc-filter aria-label="Filter topics">
+  <ul class="toc" data-toc></ul>
+  <noscript><p>Enable JavaScript for the table of contents and screenshots.</p></noscript>
+</aside>
+
+<main class="content">
+
+<h1>Documentation</h1>
+<p class="lede">Every feature in Elune M2, grouped by where you find it in Blender, with the steps to use it.</p>
+
+<!-- ============================================================ -->
+<h2 id="getting-started">Getting started</h2>
+<p class="section-intro">Install the add-on and learn where its tools live.</p>
+
+<h3 id="requirements">Requirements</h3>
+<ul>
+  <li><strong>Blender 5.0 or newer.</strong> The add-on is packaged as a Blender extension.</li>
+  <li>Model files extracted from the game: the <code>.m2</code> plus the files that sit beside it (<code>.skin</code>, and for modern characters <code>.skel</code> and <code>.anim</code>). Keep them in the same folder with their original names so the importer finds them.</li>
+</ul>
+
+<h3 id="install">Install</h3>
+<ol class="steps">
+  <li>Download the add-on <code>.zip</code>. Do not unzip it.</li>
+  <li>In Blender open <span class="path">Edit <span class="sep">›</span> Preferences <span class="sep">›</span> Get Extensions</span>.</li>
+  <li>Open the drop-down arrow in the top-right corner and choose <span class="ui">Install from Disk…</span>, then pick the zip.</li>
+  <li>Make sure <span class="ui">Elune M2</span> is ticked in the <span class="ui">Add-ons</span> list.</li>
+</ol>
+<figure class="shot" data-shot="install-extension" data-hint="Blender Preferences › Get Extensions with the 'Install from Disk…' menu open.">
+  <figcaption>Installing the zip from the Get Extensions screen.</figcaption>
+</figure>
+
+<h3 id="where-things-are">Where things are</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>What</th><th>Where in Blender</th></tr></thead>
+  <tbody>
+    <tr><td>Import</td><td><span class="path">File <span class="sep">›</span> Import <span class="sep">›</span> WoW Model (.m2)</span>, or drag a <code>.m2</code> straight into the 3D viewport.</td></tr>
+    <tr><td>Export</td><td><span class="path">File <span class="sep">›</span> Export <span class="sep">›</span> WoW Model (.m2)</span></td></tr>
+    <tr><td>Editing panels</td><td>3D viewport sidebar (press <kbd>N</kbd>), <span class="ui">M2</span> tab: <span class="ui">M2 Material</span>, <span class="ui">M2 Bone</span>, <span class="ui">M2 Action</span>, <span class="ui">M2 Geoset</span>. The <span class="ui">M2 Physics</span> panel is <a href="#physics">work in progress</a>.</td></tr>
+    <tr><td>Log output</td><td><span class="path">Window <span class="sep">›</span> Toggle System Console</span>. The add-on prints detailed <code>[M2]</code> and <code>[phys]</code> lines there; warnings in the status bar point to it.</td></tr>
+  </tbody>
+</table></div>
+<figure class="shot wide" data-shot="overview-m2-tab" data-hint="Full Blender window: an imported character in the viewport with the N-panel open on the M2 tab.">
+  <figcaption>The M2 tab in the viewport sidebar holds all editing panels.</figcaption>
+</figure>
+
+<h3 id="supported-formats">Supported formats</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Expansion</th><th>M2 version</th><th>Import</th><th>Export</th></tr></thead>
+  <tbody>
+    <tr><td>Classic / Vanilla</td><td>256–257</td><td>Yes</td><td>—</td></tr>
+    <tr><td>The Burning Crusade</td><td>260–263</td><td>Yes</td><td>—</td></tr>
+    <tr><td>Wrath of the Lich King</td><td>264</td><td>Yes</td><td>Flat MD20</td></tr>
+    <tr><td>Cataclysm</td><td>265–272</td><td>Yes</td><td>—</td></tr>
+    <tr><td>Mists of Pandaria / Warlords</td><td>272</td><td>Yes</td><td>—</td></tr>
+    <tr><td>Legion through current retail</td><td>272–274, chunked</td><td>Yes</td><td>Chunked MD21</td></tr>
+  </tbody>
+</table></div>
+<p>Companion files read on import: <code>.skin</code> (mesh LOD 0), <code>.skel</code> (external skeleton and animations), and <code>.anim</code> (external animation data). Export writes <code>.m2</code>, <code>.skin</code>, and in Full Custom mode a <code>.skel</code>. Support for <code>.phys</code> physics files is <a href="#physics">coming soon</a>.</p>
+
+<!-- ============================================================ -->
+<h2 id="importing">Importing a model</h2>
+<p class="section-intro">Bring an M2 into Blender as editable meshes, an armature, actions and helper objects.</p>
+
+<h3 id="import-basic">Basic import</h3>
+<ol class="steps">
+  <li>Choose <span class="path">File <span class="sep">›</span> Import <span class="sep">›</span> WoW Model (.m2)</span>. You can select several files at once.</li>
+  <li>Leave <span class="ui">Expansion</span> on <span class="ui">Auto-detect</span> unless a file is misread.</li>
+  <li>Adjust the options in the right-hand column (below), then click <span class="ui">Import M2</span>.</li>
+</ol>
+<p>The status bar reports the detected format, vertex and triangle counts, and how many animations and attachments were built. If it says <em>no skin file found</em>, the <code>.skin</code> is missing from the folder and the mesh will be empty.</p>
+<figure class="shot" data-shot="import-dialog" data-hint="The import file browser with the options column on the right fully visible.">
+  <figcaption>Import options in the file browser.</figcaption>
+</figure>
+
+<h3 id="import-options">Import options</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Option</th><th>Default</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Expansion</td><td>Auto-detect</td><td>Which parser reads the file. Override only if auto-detect guesses wrong.</td></tr>
+    <tr><td>Import Skeleton</td><td>On</td><td>Builds an armature from the bones and skins the mesh to it. Animations, attachments and cameras need this.</td></tr>
+    <tr><td>Split Geosets</td><td>On</td><td>Each geoset becomes its own mesh object named <code>…_geoset_NNNN</code>. Turn off for one merged mesh.</td></tr>
+    <tr><td>Import Animations</td><td>On</td><td>Creates one Blender Action per animation sequence.</td></tr>
+    <tr><td>Import Attachments</td><td>On</td><td>Creates an empty at each attachment point (weapon and effect mounts), parented to its bone.</td></tr>
+    <tr><td>Import Cameras</td><td>On</td><td>Creates a Blender camera for each M2 camera (portrait, character info) with its target, field of view and animation.</td></tr>
+    <tr><td>Import Bounding Box</td><td>On</td><td>Creates the editable <code>M2_BoundingBox</code> wireframe. See <a href="#bounding-box">Bounding box</a>.</td></tr>
+    <tr><td>Import Events</td><td>On</td><td>Creates an empty per event (<code>$SHR</code>, <code>$FL0</code>, …) and adds standard events the model lacks so sheathe, footstep, cast and breath triggers fire in game.</td></tr>
+    <tr><td>Bone Tilt (deg)</td><td>0</td><td>Fans bones outward so they are easier to see and click. Animations are converted in and out automatically.</td></tr>
+    <tr><td>Weld Seam Vertices</td><td>On</td><td>Merges the duplicate vertices M2 stores along UV and normal seams into a connected mesh. Turn off only for the <a href="#export-patch">in-place vertex patch</a>, which needs identical topology.</td></tr>
+    <tr><td>Animation FPS</td><td>30</td><td>Frame rate used to convert millisecond keyframe times to frames.</td></tr>
+    <tr><td>Max Animations</td><td>0 (all)</td><td>Caps how many clips are built. Characters can have 400+ sequences; lower this for a quick import.</td></tr>
+    <tr><td>Mirror X</td><td>Off</td><td>Flips handedness. If you use it, use the same setting on export.</td></tr>
+    <tr><td>Import Physics (.phys)</td><td>On</td><td>Experimental. Physics is <a href="#physics">work in progress</a>; untick this for now.</td></tr>
+    <tr><td>Phys File Override</td><td>empty</td><td>Experimental. Only shown when Import Physics is on.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="import-result">What you get in the scene</h3>
+<ul>
+  <li><strong>Armature</strong> named <code>&lt;model&gt;_Armature</code> with bones <code>bone_000</code>, <code>bone_001</code>, … The M2 bone data (key bone id, flags, name CRC) is kept on each bone.</li>
+  <li><strong>Geoset meshes</strong>, each carrying its geoset id and M2 material settings.</li>
+  <li><strong>Actions</strong> named <code>&lt;model&gt;_&lt;Animation&gt;</code> (for example <code>…_Stand</code>, <code>…_Walk_1</code>), one per sequence, all kept with a fake user so none are lost on save. Global sequences get their own actions.</li>
+  <li><strong>Empties</strong> for attachments and events, <strong>cameras</strong>, and the <strong>bounding box</strong>.</li>
+</ul>
+<figure class="shot wide" data-shot="imported-scene" data-hint="Viewport plus Outliner after importing a character: armature, geoset meshes, attachment empties and bounding box.">
+  <figcaption>A freshly imported character and its Outliner hierarchy.</figcaption>
+</figure>
+<div class="note"><strong>Tip</strong>The add-on remembers the path of the imported <code>.m2</code> in the scene. Export uses it to read back tables that have no Blender equivalent, so keep the original file where it was.</div>
+
+<!-- ============================================================ -->
+<h2 id="exporting">Exporting</h2>
+<p class="section-intro">Four ways to write a model, from a full standalone build to a byte-exact vertex patch.</p>
+
+<h3 id="export-choose">Choosing an export mode</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>You want to…</th><th>Settings</th><th>Files written</th></tr></thead>
+  <tbody>
+    <tr><td class="wrap">Build a complete model from whatever is in the scene</td><td>Format: Chunked, <span class="ui">New Model</span> on (default)</td><td><code>.m2</code>, <code>00.skin</code></td></tr>
+    <tr><td class="wrap">Replace an existing model's slot with your geometry</td><td>New Model off, <span class="ui">Patch into M2</span> set</td><td><code>.m2</code> and every skin LOD the target has</td></tr>
+    <tr><td class="wrap">Nudge vertices on an original model and change nothing else</td><td>Same as above, imported with <span class="ui">Weld Seam Vertices</span> off</td><td><code>.m2</code> plus copies of the original skins</td></tr>
+    <tr><td class="wrap">Ship a new retail character with its own skeleton file</td><td>New Model off, <span class="ui">Full Custom</span> on</td><td><code>.m2</code>, <code>.skel</code>, <code>00.skin</code></td></tr>
+    <tr><td class="wrap">Target a Wrath-era client</td><td>Format: Flat MD20</td><td><code>.m2</code> and a name-based <code>.skin</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="export-new-model">New Model (from scratch)</h3>
+<p>The default. Builds a self-contained M2 from the meshes, armature and actions in the scene, with bones and animations embedded. Works on imported models and on rigs made entirely in Blender.</p>
+<ol class="steps">
+  <li>Choose <span class="path">File <span class="sep">›</span> Export <span class="sep">›</span> WoW Model (.m2)</span>. Keep <span class="ui">Format</span> on <span class="ui">Chunked MD21 (retail)</span> and <span class="ui">New Model (from scratch)</span> ticked.</li>
+  <li>Set <span class="ui">Skin FileDataID</span> to the id you will register the exported <code>00.skin</code> under.</li>
+  <li>Set <span class="ui">Texture FileDataID</span> as the fallback texture for materials that do not name their own. Materials configured in the <a href="#materials">M2 Material panel</a> override it.</li>
+  <li>Tick <span class="ui">Force All Geosets Visible</span> for creature or object style models. See <a href="#geoset-visibility">geoset visibility</a>.</li>
+  <li>Click <span class="ui">Export M2</span>.</li>
+</ol>
+<figure class="shot" data-shot="export-new-model" data-hint="The export file browser with New Model ticked, showing Skin FileDataID, Texture FileDataID, M2 Version, Force All Geosets Visible, Export Scale.">
+  <figcaption>Export options in New Model mode.</figcaption>
+</figure>
+<h4>How animations are picked up</h4>
+<ul>
+  <li>Actions created by the importer are exported as the sequences they came from, keeping id, variation, flags, duration and blend times.</li>
+  <li>Actions you create yourself are matched by name: end the name with a WoW animation name and an optional variation number, such as <code>MyRig_Stand</code>, <code>MyRig_Walk</code> or <code>MyRig_Attack1H_1</code>.</li>
+  <li>With neither, the armature's active action is exported as <code>Stand</code>. With no action at all, a one-second static <code>Stand</code> is written so the model still loads.</li>
+</ul>
+<div class="note"><strong>Materials fill themselves in</strong>When the scene came from an import, meshes without M2 material settings inherit the texture binding their geoset id had in the source model.</div>
+
+<h3 id="export-patch">Patch into an existing M2</h3>
+<p>Use this to put your model on another model's slot. The target's structure (LOD count, skin file ids, extra chunks) is kept and only geometry is replaced.</p>
+<ol class="steps">
+  <li>Untick <span class="ui">New Model</span> and leave <span class="ui">Full Custom</span> off.</li>
+  <li>Set <span class="ui">Patch into M2 (target slot)</span> to the original <code>.m2</code> you are replacing. If left blank, the file you imported is used.</li>
+  <li>Optionally set <span class="ui">Skin FileDataID</span>, otherwise the target's ids are reused.</li>
+  <li>Export. All skin LODs the target expects are written next to the <code>.m2</code>.</li>
+</ol>
+<p><strong>In-place vertex patch.</strong> If the scene has exactly the same vertices as the target (import with <span class="ui">Weld Seam Vertices</span> off and do not add or delete geometry), only positions, normals and UVs are written back. Everything else stays byte-identical and the original skins are copied across. This is the safest way to reshape an existing model.</p>
+<div class="warn"><strong>Bone names matter here</strong>Patch and Full Custom read bones by the importer's <code>bone_NNN</code> names. For a rig from elsewhere, use <a href="#export-new-model">New Model</a> mode, which accepts any armature.</div>
+
+<h3 id="export-full-custom">Full Custom (.skel)</h3>
+<p>Writes a mesh-only, single-LOD M2 plus a <code>.skel</code> carrying the skeleton and animations, the layout modern retail characters use. Choose this when you change meshes <em>and</em> re-animate a character.</p>
+<ol class="steps">
+  <li>Untick <span class="ui">New Model</span>, tick <span class="ui">Full Custom (write .skel)</span>.</li>
+  <li>Fill in <span class="ui">Skeleton FileDataID</span> and <span class="ui">Skin FileDataID</span>. Both are required.</li>
+  <li>Export, then register the <code>.m2</code>, <code>.skel</code>, <code>00.skin</code> and textures under those ids.</li>
+</ol>
+
+<h3 id="export-options">Other export options</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Option</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>M2 Version</td><td>Version number written to the header. 274 for Legion through retail, 264 for Wrath.</td></tr>
+    <tr><td>Body Skin Texture FileDataID</td><td>Converts the client-composited body skin (texture type 1) into a fixed texture with this id. Use it when body geosets are invisible on a custom character. 0 leaves it composited.</td></tr>
+    <tr><td>Source M2 (read tables from)</td><td>The <code>.m2</code> the scene came from. Texture, material and batch tables are read from it at export time. Blank uses the path remembered at import.</td></tr>
+    <tr><td>Export Scale</td><td>Resizes the model on the way out. Only distances scale, so animations survive exactly. Use this instead of scaling the rig in Blender.</td></tr>
+    <tr><td>Selected Only</td><td>Export just the selected objects.</td></tr>
+    <tr><td>Mirror X</td><td>Match whatever you used on import.</td></tr>
+    <tr><td>Phys FileDataID</td><td>Experimental. Leave at 0; physics is <a href="#physics">work in progress</a>.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="geoset-visibility">Geoset visibility warnings</h3>
+<p>The game only draws a geoset with a non-zero id when something switches that group on (character customization, equipment, or creature geoset data). Meshes that keep ids inherited from a character import can therefore be invisible on a new model. Export warns you when it sees non-zero ids, and reports any geoset whose skin data will not draw, with details in the System Console.</p>
+<p>Fix it by ticking <span class="ui">Force All Geosets Visible</span>, which sets every id to 0, or by assigning correct ids in the <a href="#geosets">M2 Geoset panel</a>.</p>
+
+<!-- ============================================================ -->
+<h2 id="materials">Materials and textures</h2>
+<p class="section-intro">The M2 Material panel controls how each material is textured and blended in game.</p>
+
+<h3 id="material-panel">M2 Material panel</h3>
+<p>Select a mesh, open the <span class="ui">M2</span> tab and expand <span class="ui">M2 Material</span>. The panel edits the active material. Changes apply immediately and are saved with the .blend.</p>
+<ul>
+  <li><span class="ui">Add M2 Material</span> creates a new material with M2 settings on the active mesh.</li>
+  <li><span class="ui">Apply Material to Selected</span> gives every other selected mesh the active object's material, settings included. Select the targets, then shift-click the source mesh last.</li>
+</ul>
+<figure class="shot" data-shot="material-panel" data-hint="The M2 Material panel with Texture Type set to File (BLP), showing FileDataID, Texture Path, Blend, Opacity, Shader ID and the Render Flags box.">
+  <figcaption>The M2 Material panel.</figcaption>
+</figure>
+
+<h3 id="texture-types">Texture type</h3>
+<p><span class="ui">Texture Type</span> decides where the texture comes from. <span class="ui">File (BLP)</span> is a real file you name. Every other type means <em>the client supplies this at runtime</em>, and it only does so in the situation that type exists for.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Type</th><th>Use for</th></tr></thead>
+  <tbody>
+    <tr><td>File (BLP)</td><td>Your own texture. The normal choice for custom models.</td></tr>
+    <tr><td>Skin (composited)</td><td>Character body and most armor. The client bakes skin, underwear and gear together.</td></tr>
+    <tr><td>Object Skin</td><td>Cloaks and item models textured from item data.</td></tr>
+    <tr><td>Character Hair / Facial Hair</td><td>Hair geosets that follow the character's hair color.</td></tr>
+    <tr><td>Monster Skin 1–3</td><td>Creature skins chosen by creature display data.</td></tr>
+    <tr><td>Environment</td><td>Reflection map for shiny surfaces.</td></tr>
+    <tr><td>Weapon Blade / Handle, Guild types, others</td><td>Special slots filled by the client for items and tabards.</td></tr>
+  </tbody>
+</table></div>
+<div class="warn"><strong>Invisible mesh?</strong>A runtime type on a model the client does not bind it for resolves to no texture. Combined with <span class="ui">Alpha Key</span> blending, every pixel is discarded and the mesh disappears. Switch the material to <span class="ui">File (BLP)</span> and give it a texture.</div>
+
+<h3 id="texture-fid">Texture by FileDataID</h3>
+<p>With <span class="ui">File (BLP)</span> selected, enter the BLP's id in <span class="ui">Texture FileDataID</span>. It is written to the model's texture id table and is how retail clients find the file.</p>
+
+<h3 id="texture-path">Hardcoded texture path</h3>
+<p><span class="ui">Texture Path</span> bakes a file path into the model's texture record for that material, so the texture is tied to the geosets using it. Leave it empty to rely on the FileDataID alone. The FileDataID is still written alongside the path.</p>
+<ol class="steps">
+  <li>Set <span class="ui">Texture Type</span> to <span class="ui">File (BLP)</span>.</li>
+  <li>Type or browse to the path in <span class="ui">Texture Path</span>.</li>
+  <li>Export as usual. Two materials with the same FileDataID but different paths stay separate textures.</li>
+</ol>
+<div class="note"><strong>The path is written exactly as typed</strong>The game expects a game-style path such as <code>creature\mymodel\mymodel_body.blp</code>, not a location on your disk. If you pick a file with the browser button, edit the result into that form.</div>
+<figure class="shot" data-shot="texture-path" data-hint="Close-up of the Texture FileDataID and Texture Path fields filled in, with the 'Path overrides FileDataID on export' hint visible.">
+  <figcaption>A material with a hardcoded texture path.</figcaption>
+</figure>
+
+<h3 id="blend-modes">Blend mode and opacity</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Blend</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>Opaque</td><td>No transparency.</td></tr>
+    <tr><td>Alpha Key</td><td>Hard cutout. Hair edges, foliage, fences.</td></tr>
+    <tr><td>Alpha Blend</td><td>Smooth transparency.</td></tr>
+    <tr><td>No-Alpha Add</td><td>Additive, ignoring the alpha channel.</td></tr>
+    <tr><td>Add (glow)</td><td>Additive. Black becomes invisible; use for glows.</td></tr>
+    <tr><td>Modulate / Modulate 2x</td><td>Multiplies with what is behind it.</td></tr>
+    <tr><td>Blend Add</td><td>Alpha-weighted additive.</td></tr>
+  </tbody>
+</table></div>
+<p><span class="ui">Opacity</span> below 1 fades the material and forces an alpha blend. <span class="ui">Shader ID</span> is written to the batch as is; leave it at 0 unless you know the shader you need.</p>
+
+<h3 id="render-flags">Render flags</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Flag</th><th>Effect in game</th></tr></thead>
+  <tbody>
+    <tr><td>Two-Sided</td><td>Draws back faces. Use for capes, hair cards and thin planes.</td></tr>
+    <tr><td>Unlit (full-bright)</td><td>Ignores scene lighting.</td></tr>
+    <tr><td>Unfogged</td><td>Ignores distance fog.</td></tr>
+    <tr><td>No Depth Test</td><td>Draws over everything in front of it.</td></tr>
+    <tr><td>No Depth Write</td><td>Does not hide what is drawn later. Usual for glows and transparent effects.</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="geosets">Geosets</h2>
+<p class="section-intro">Geoset ids tell the game which mesh pieces to show for hair styles and equipment.</p>
+
+<h3 id="geoset-ids">How geoset ids work</h3>
+<p>An id is <code>group × 100 + variant</code>. Id <code>0</code> is always drawn. Anything else is drawn only when its group and variant are enabled.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Group</th><th>Ids</th><th>Controls</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>0, 1–99</td><td>Base body (0) and hairstyles</td></tr>
+    <tr><td>1–3</td><td>1xx–3xx</td><td>Facial hair</td></tr>
+    <tr><td>4 / 5</td><td>4xx / 5xx</td><td>Gloves / boots</td></tr>
+    <tr><td>7</td><td>7xx</td><td>Ears</td></tr>
+    <tr><td>8 / 9</td><td>8xx / 9xx</td><td>Sleeves / leg cuffs</td></tr>
+    <tr><td>10 / 11</td><td>10xx / 11xx</td><td>Chest / pants</td></tr>
+    <tr><td>12 / 13</td><td>12xx / 13xx</td><td>Tabard / trousers or robe</td></tr>
+    <tr><td>15 / 18</td><td>15xx / 18xx</td><td>Cloak / belt</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="geoset-panel">M2 Geoset panel</h3>
+<ol class="steps">
+  <li>Select an imported geoset mesh. The panel shows its current id, group and variant.</li>
+  <li>Pick a <span class="ui">Group</span> and <span class="ui">Variant</span>, or choose <span class="ui">Custom id</span> and type the full number. The mesh updates immediately and is renamed to <code>…_geoset_NNNN</code>.</li>
+  <li>To set many meshes at once, select them all and click <span class="ui">Apply to N Selected</span>.</li>
+</ol>
+<p>For meshes you modelled yourself, select them and use <span class="ui">Apply to N Selected</span> to stamp an id.</p>
+<figure class="shot" data-shot="geoset-panel" data-hint="M2 Geoset panel with a hair or glove geoset selected in the viewport, showing Active, ID line, Group, Variant and Resolved id.">
+  <figcaption>Assigning a geoset id to the selected mesh.</figcaption>
+</figure>
+
+<!-- ============================================================ -->
+<h2 id="animation">Bones and animation</h2>
+<p class="section-intro">Inspect bone data, tune how animations blend in game, and re-pose a rig safely.</p>
+
+<h3 id="bone-panel">M2 Bone panel</h3>
+<p>Select the armature and click a bone in Edit or Pose mode. The panel shows the data the game uses to identify it: <span class="ui">Key Bone</span> (named slots such as Head, Jaw, ArmL, Root that the client looks up directly), <span class="ui">Flags</span>, <span class="ui">Submesh</span> and <span class="ui">Name CRC</span>. These values are preserved on export.</p>
+<figure class="shot" data-shot="bone-panel" data-hint="Armature in Pose mode with the head bone selected and the M2 Bone panel showing 'Key Bone: 6 - Head'.">
+  <figcaption>Key bone information for the selected bone.</figcaption>
+</figure>
+
+<h3 id="apply-pose-rest">Keyframe Pose + Apply Rest</h3>
+<p>Changes the rest pose of a rig without breaking its animations.</p>
+<ol class="steps">
+  <li>Select the armature and enter Pose mode.</li>
+  <li>Rotate bones into the new default pose.</li>
+  <li>In <span class="ui">M2 Bone</span>, click <span class="ui">Keyframe Pose + Apply Rest (all actions)</span>.</li>
+</ol>
+<p>Every action that has no rotation keys for a posed bone receives a frame-0 key holding the new rotation, then the pose is applied as the rest pose.</p>
+<div class="warn"><strong>Save first</strong>This edits every action in the file.</div>
+
+<h3 id="action-panel">M2 Action panel and blend times</h3>
+<p>With an armature selected, <span class="ui">M2 Action</span> shows the active action's animation id and name, variation, sequence index, duration and flags.</p>
+<p><span class="ui">Blend In (ms)</span> and <span class="ui">Blend Out (ms)</span> set the cross-fade when the game switches to or from this animation. <strong>0 makes the model snap</strong> from one animation to the next. Original game files use 150 in and 0 out for most animations.</p>
+<ul>
+  <li>Imported actions carry the values from the file and you can edit them in place.</li>
+  <li>For actions without stored values, click <span class="ui">Edit Blend Times</span> to add the fields. Untouched actions export with the 150 / 0 default.</li>
+  <li>Files whose blend times are all zero (written by early versions of this add-on) are repaired to the default on import.</li>
+</ul>
+<figure class="shot" data-shot="action-panel" data-hint="M2 Action panel for a Walk or Attack action showing ID, Variant, Duration, Flags and the Blend In / Blend Out fields.">
+  <figcaption>Blend times on the active action.</figcaption>
+</figure>
+
+<h3 id="naming-actions">Naming your own actions</h3>
+<p>New Model export recognises actions whose name ends in a WoW animation name, optionally followed by a variation number: <code>Stand</code>, <code>Rig_Run</code>, <code>Rig_Attack1H_1</code>, <code>Rig_EmoteDance</code>. A trailing <code>_remap</code> from retargeting tools is ignored. Variations of the same animation are linked and given equal play weight automatically.</p>
+
+<h3 id="bounding-box">Bounding box and camera framing</h3>
+<p>The <code>M2_BoundingBox</code> wireframe is the model's render bounds. The game frames portrait and character-screen cameras around its centre. Move, scale or edit its corners and export writes the new box. Raise it to make the camera look higher, lower it to look lower. Delete the object and bounds are computed from the vertices instead.</p>
+<figure class="shot" data-shot="bounding-box" data-hint="A model with the M2_BoundingBox wireframe selected and visibly adjusted around it.">
+  <figcaption>The editable bounding box.</figcaption>
+</figure>
+
+<h3 id="attachments-events">Attachments, events and cameras</h3>
+<p>Attachment and event empties are parented to their bones, so move them in the viewport to reposition weapon mounts, spell origins or footstep triggers. Imported cameras keep their target empty, clip distances, field of view and animation.</p>
+
+<!-- ============================================================ -->
+<h2 id="physics">Physics <span class="badge">Coming soon</span></h2>
+<p class="section-intro">Cloth, chain and jiggle physics with <code>.phys</code> import and export. In development, not ready to use yet.</p>
+
+<div class="wip">
+  <p class="wip-title">Work in progress</p>
+  <p>Physics support is still being built. An <span class="ui">M2 Physics</span> panel and physics options appear in the add-on, but they are experimental: results are unreliable and files written by them may not behave correctly in game. Full documentation will be added here when the feature is ready.</p>
+</div>
+
+<h3 id="physics-planned">What is planned</h3>
+<ul>
+  <li>Import a model's <code>.phys</code> file as an editable rigid-body rig.</li>
+  <li>One-click presets that set up cloth, chains and jiggle on selected bones.</li>
+  <li>Colliders, so simulated parts rest against the character.</li>
+  <li>A baked preview that plays the simulation on the skeleton inside Blender.</li>
+  <li>Export back to a <code>.phys</code> the game loads.</li>
+</ul>
+
+<h3 id="physics-meantime">In the meantime</h3>
+<p>Models import, edit and export normally without physics. To keep experimental physics data out of your work:</p>
+<ul>
+  <li>On import, untick <span class="ui">Import Physics (.phys)</span>.</li>
+  <li>On export, leave <span class="ui">Phys FileDataID</span> at 0. A <code>.phys</code> file is only written when the scene contains a Rigid Body World, so a scene without one exports no physics.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p class="section-intro">Common problems and where to look.</p>
+
+<h3 id="ts-common">Common problems</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Symptom</th><th>Likely cause and fix</th></tr></thead>
+  <tbody>
+    <tr><td class="wrap">Imported mesh is empty</td><td>No <code>.skin</code> next to the <code>.m2</code>. Extract <code>&lt;name&gt;00.skin</code> into the same folder.</td></tr>
+    <tr><td class="wrap">No animations, or only some</td><td>The model stores them in <code>.skel</code> or <code>.anim</code> files that are missing, or <span class="ui">Max Animations</span> is limiting the import.</td></tr>
+    <tr><td class="wrap">Parts of the model are invisible in game</td><td>Non-zero geoset ids (see <a href="#geoset-visibility">geoset visibility</a>), or a runtime texture type with Alpha Key blending (see <a href="#texture-types">texture type</a>).</td></tr>
+    <tr><td class="wrap">Model is untextured in game</td><td>A File (BLP) material has no FileDataID. Export warns about this. Set it in the panel or use <span class="ui">Texture FileDataID</span> at export.</td></tr>
+    <tr><td class="wrap">Animations snap instead of blending</td><td>Blend times are 0. Set them in <a href="#action-panel">M2 Action</a> and re-export.</td></tr>
+    <tr><td class="wrap">Animations look wrong after scaling</td><td>The rig was scaled in Blender. Undo that and use <span class="ui">Export Scale</span>.</td></tr>
+    <tr><td class="wrap">Export fails in Patch or Full Custom mode</td><td>Bones are not named <code>bone_NNN</code>, or the source M2 cannot be found. Check the System Console for the paths that were tried.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="custom-properties">Custom property reference</h3>
+<p>The panels store their settings as custom properties, which you can also read or set from Python.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>On</th><th>Property</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>Material</td><td><code>m2_texture_types</code></td><td>Texture type number(s), comma-separated for multi-texture</td></tr>
+    <tr><td>Material</td><td><code>m2_texture_ids</code></td><td>Texture FileDataID(s)</td></tr>
+    <tr><td>Material</td><td><code>m2_texture_paths</code></td><td>Hardcoded texture path(s)</td></tr>
+    <tr><td>Material</td><td><code>m2_blend_mode</code>, <code>m2_shader_id</code>, <code>m2_render_flags</code>, <code>m2_transparency</code></td><td>Blend, shader, flags and opacity</td></tr>
+    <tr><td>Mesh object</td><td><code>m2_skin_section_id</code></td><td>Geoset id</td></tr>
+    <tr><td>Mesh object</td><td><code>m2_order</code>, <code>m2_center_bone</code></td><td>Original submesh order and centre bone</td></tr>
+    <tr><td>Action</td><td><code>m2_seq_id</code>, <code>m2_seq_var</code>, <code>m2_seq_flags</code>, <code>m2_seq_duration</code></td><td>Animation id, variation, flags, length in ms</td></tr>
+    <tr><td>Action</td><td><code>m2_seq_blend_time</code>, <code>m2_seq_blend_out</code></td><td>Blend in / out in ms</td></tr>
+    <tr><td>Bone</td><td><code>m2_key_bone_id</code>, <code>m2_bone_flags</code>, <code>m2_name_crc</code></td><td>Identity data the client uses</td></tr>
+  </tbody>
+</table></div>
+
+</main>
+</div>
+
+<footer class="footer">Elune M2 · GPL-3.0-or-later · Not affiliated with or endorsed by Blizzard Entertainment.</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>
