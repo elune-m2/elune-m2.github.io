@@ -49,7 +49,7 @@
 <h3 id="requirements">Requirements</h3>
 <ul>
   <li><strong>Blender 5.0 or newer.</strong> The add-on is packaged as a Blender extension.</li>
-  <li>Model files extracted from the game: the <code>.m2</code> plus the files that sit beside it (<code>.skin</code>, and for modern characters <code>.skel</code> and <code>.anim</code>). Keep them in the same folder with their original names so the importer finds them.</li>
+  <li>Model files extracted from the game: the <code>.m2</code> plus the files that sit beside it (<code>.skin</code>, and where the model has them <code>.skel</code>, <code>.anim</code> and <code>.phys</code>). Keep them in the same folder with their original names so the importer finds them.</li>
 </ul>
 
 <h3 id="install">Install</h3>
@@ -69,7 +69,7 @@
   <tbody>
     <tr><td>Import</td><td><span class="path">File <span class="sep">›</span> Import <span class="sep">›</span> WoW Model (.m2)</span>, or drag a <code>.m2</code> straight into the 3D viewport.</td></tr>
     <tr><td>Export</td><td><span class="path">File <span class="sep">›</span> Export <span class="sep">›</span> WoW Model (.m2)</span></td></tr>
-    <tr><td>Editing panels</td><td>3D viewport sidebar (press <kbd>N</kbd>), <span class="ui">M2</span> tab: <span class="ui">M2 Material</span>, <span class="ui">M2 Bone</span>, <span class="ui">M2 Action</span>, <span class="ui">M2 Geoset</span>. The <span class="ui">M2 Physics</span> panel is <a href="#physics">work in progress</a>.</td></tr>
+    <tr><td>Editing panels</td><td>3D viewport sidebar (press <kbd>N</kbd>), <span class="ui">M2</span> tab: <span class="ui">M2 Material</span>, <span class="ui">M2 Bone</span>, <span class="ui">M2 Action</span>, <span class="ui">M2 Geoset</span>, <span class="ui">M2 Physics</span>.</td></tr>
     <tr><td>Log output</td><td><span class="path">Window <span class="sep">›</span> Toggle System Console</span>. The add-on prints detailed <code>[M2]</code> and <code>[phys]</code> lines there; warnings in the status bar point to it.</td></tr>
   </tbody>
 </table></div>
@@ -89,7 +89,7 @@
     <tr><td>Legion through current retail</td><td>272–274, chunked</td><td>Yes</td><td>Chunked MD21</td></tr>
   </tbody>
 </table></div>
-<p>Companion files read on import: <code>.skin</code> (mesh LOD 0), <code>.skel</code> (external skeleton and animations), and <code>.anim</code> (external animation data). Export writes <code>.m2</code>, <code>.skin</code>, and in Full Custom mode a <code>.skel</code>. Support for <code>.phys</code> physics files is <a href="#physics">coming soon</a>.</p>
+<p>Companion files read on import: <code>.skin</code> (mesh LOD 0), <code>.skel</code> (external skeleton and animations), <code>.anim</code> (external animation data) and <code>.phys</code> (physics, versions 0 to 6, also read from the PFDC chunk inside modern models). Export writes <code>.m2</code>, <code>.skin</code>, a <code>.skel</code> in Full Custom mode, and physics when the scene has a rig.</p>
 
 <!-- ============================================================ -->
 <h2 id="importing">Importing a model</h2>
@@ -116,15 +116,17 @@
     <tr><td>Import Animations</td><td>On</td><td>Creates one Blender Action per animation sequence.</td></tr>
     <tr><td>Import Attachments</td><td>On</td><td>Creates an empty at each attachment point (weapon and effect mounts), parented to its bone.</td></tr>
     <tr><td>Import Cameras</td><td>On</td><td>Creates a Blender camera for each M2 camera (portrait, character info) with its target, field of view and animation.</td></tr>
-    <tr><td>Import Bounding Box</td><td>On</td><td>Creates the editable <code>M2_BoundingBox</code> wireframe. See <a href="#bounding-box">Bounding box</a>.</td></tr>
+    <tr><td>Import Bounding Box</td><td>On</td><td>Creates the editable <code>M2_CollisionBox</code> and <code>M2_BoundingBox</code> wireframes. See <a href="#bounding-box">Bounding boxes</a>.</td></tr>
     <tr><td>Import Events</td><td>On</td><td>Creates an empty per event (<code>$SHR</code>, <code>$FL0</code>, …) and adds standard events the model lacks so sheathe, footstep, cast and breath triggers fire in game.</td></tr>
     <tr><td>Bone Tilt (deg)</td><td>0</td><td>Fans bones outward so they are easier to see and click. Animations are converted in and out automatically.</td></tr>
     <tr><td>Weld Seam Vertices</td><td>On</td><td>Merges the duplicate vertices M2 stores along UV and normal seams into a connected mesh. Turn off only for the <a href="#export-patch">in-place vertex patch</a>, which needs identical topology.</td></tr>
     <tr><td>Animation FPS</td><td>30</td><td>Frame rate used to convert millisecond keyframe times to frames.</td></tr>
     <tr><td>Max Animations</td><td>0 (all)</td><td>Caps how many clips are built. Characters can have 400+ sequences; lower this for a quick import.</td></tr>
     <tr><td>Mirror X</td><td>Off</td><td>Flips handedness. If you use it, use the same setting on export.</td></tr>
-    <tr><td>Import Physics (.phys)</td><td>On</td><td>Experimental. Physics is <a href="#physics">work in progress</a>; untick this for now.</td></tr>
-    <tr><td>Phys File Override</td><td>empty</td><td>Experimental. Only shown when Import Physics is on.</td></tr>
+    <tr><td>Repair Stray Weights</td><td>On</td><td>A vertex bound to a bone none of its neighbours use takes its neighbours' weights. Retail files have the odd vertex bound to the root in the middle of a head part (a blood elf eye glow has one), which otherwise stays behind when the head moves.</td></tr>
+    <tr><td>Normalize UV Tiles</td><td>On</td><td>Shifts each UV island by whole tiles onto the 0–1 grid. Retail hair sits several tiles away from the origin; its texture wraps, so the model draws the same either way, but the UVs are far easier to edit on the grid. Only axes the texture wraps on are shifted.</td></tr>
+    <tr><td>Import Physics (.phys)</td><td>On</td><td>Builds an editable physics rig from the model's embedded physics or a <code>.phys</code> file beside it. See <a href="#physics-import">Importing physics</a>.</td></tr>
+    <tr><td>Phys File Override</td><td>empty</td><td>Explicit path to a <code>.phys</code> file, used instead of the automatic search.</td></tr>
   </tbody>
 </table></div>
 
@@ -133,7 +135,8 @@
   <li><strong>Armature</strong> named <code>&lt;model&gt;_Armature</code> with bones <code>bone_000</code>, <code>bone_001</code>, … The M2 bone data (key bone id, flags, name CRC) is kept on each bone.</li>
   <li><strong>Geoset meshes</strong>, each carrying its geoset id and M2 material settings.</li>
   <li><strong>Actions</strong> named <code>&lt;model&gt;_&lt;Animation&gt;</code> (for example <code>…_Stand</code>, <code>…_Walk_1</code>), one per sequence, all kept with a fake user so none are lost on save. Global sequences get their own actions.</li>
-  <li><strong>Empties</strong> for attachments and events, <strong>cameras</strong>, and the <strong>bounding box</strong>.</li>
+  <li>A <code>&lt;model&gt;_phys</code> collection holding the physics rig, if the model has one.</li>
+  <li><strong>Empties</strong> for attachments and events, <strong>cameras</strong> on aim empties, and the two <strong>bounding boxes</strong>.</li>
 </ul>
 <figure class="shot wide" data-shot="imported-scene" data-hint="Viewport plus Outliner after importing a character: armature, geoset meshes, attachment empties and bounding box.">
   <figcaption>A freshly imported character and its Outliner hierarchy.</figcaption>
@@ -148,7 +151,7 @@
 <div class="table-wrap"><table>
   <thead><tr><th>You want to…</th><th>Settings</th><th>Files written</th></tr></thead>
   <tbody>
-    <tr><td class="wrap">Build a complete model from whatever is in the scene</td><td>Format: Chunked, <span class="ui">New Model</span> on (default)</td><td><code>.m2</code>, <code>00.skin</code></td></tr>
+    <tr><td class="wrap">Build a complete model from whatever is in the scene</td><td>Format: Chunked, <span class="ui">New Model</span> on (default)</td><td><code>.m2</code>, <code>00.skin</code>, physics if rigged</td></tr>
     <tr><td class="wrap">Replace an existing model's slot with your geometry</td><td>New Model off, <span class="ui">Patch into M2</span> set</td><td><code>.m2</code> and every skin LOD the target has</td></tr>
     <tr><td class="wrap">Nudge vertices on an original model and change nothing else</td><td>Same as above, imported with <span class="ui">Weld Seam Vertices</span> off</td><td><code>.m2</code> plus copies of the original skins</td></tr>
     <tr><td class="wrap">Ship a new retail character with its own skeleton file</td><td>New Model off, <span class="ui">Full Custom</span> on</td><td><code>.m2</code>, <code>.skel</code>, <code>00.skin</code></td></tr>
@@ -165,7 +168,7 @@
   <li>Tick <span class="ui">Force All Geosets Visible</span> for creature or object style models. See <a href="#geoset-visibility">geoset visibility</a>.</li>
   <li>Click <span class="ui">Export M2</span>.</li>
 </ol>
-<figure class="shot" data-shot="export-new-model" data-hint="The export file browser with New Model ticked, showing Skin FileDataID, Texture FileDataID, M2 Version, Force All Geosets Visible, Export Scale.">
+<figure class="shot" data-shot="export-new-model" data-hint="The export file browser with New Model ticked, showing Skin FileDataID, Texture FileDataID, M2 Version, Force All Geosets Visible, Export Scale, and the 'Physics rig found' line.">
   <figcaption>Export options in New Model mode.</figcaption>
 </figure>
 <h4>How animations are picked up</h4>
@@ -205,7 +208,6 @@
     <tr><td>Export Scale</td><td>Resizes the model on the way out. Only distances scale, so animations survive exactly. Use this instead of scaling the rig in Blender.</td></tr>
     <tr><td>Selected Only</td><td>Export just the selected objects.</td></tr>
     <tr><td>Mirror X</td><td>Match whatever you used on import.</td></tr>
-    <tr><td>Phys FileDataID</td><td>Experimental. Leave at 0; physics is <a href="#physics">work in progress</a>.</td></tr>
   </tbody>
 </table></div>
 
@@ -238,10 +240,19 @@
     <tr><td>Character Hair / Facial Hair</td><td>Hair geosets that follow the character's hair color.</td></tr>
     <tr><td>Monster Skin 1–3</td><td>Creature skins chosen by creature display data.</td></tr>
     <tr><td>Environment</td><td>Reflection map for shiny surfaces.</td></tr>
+    <tr><td>Character Eyes (19)</td><td>The eyeballs. Filled from the eye-colour customization. Retail eye materials use two layers of this type with a multi-layer Shader ID.</td></tr>
+    <tr><td>Character Jewelry (20), Secondary Skin / Hair / Armor (21–23)</td><td>Customization slots added in Shadowlands: earrings, piercings, tattoos, second hair layers.</td></tr>
     <tr><td>Weapon Blade / Handle, Guild types, others</td><td>Special slots filled by the client for items and tabards.</td></tr>
   </tbody>
 </table></div>
 <div class="warn"><strong>Invisible mesh?</strong>A runtime type on a model the client does not bind it for resolves to no texture. Combined with <span class="ui">Alpha Key</span> blending, every pixel is discarded and the mesh disappears. Switch the material to <span class="ui">File (BLP)</span> and give it a texture.</div>
+
+<h3 id="texture-layers">Texture layers</h3>
+<p>Some materials draw more than one texture: retail eyes and eye glow use two layers of the same texture with a two-layer Shader ID, and tabards use six. The panel edits the first layer, and shows <span class="ui">Second Texture Layer</span> with its own type and FileDataID when the material has one. Further layers are kept exactly as imported and noted as "+N more layers". Untick the second layer to export a single-layer material; when you do, set Shader ID to a single-layer value as well.</p>
+
+<h3 id="render-data">Render data kept from the import</h3>
+<p>Geosets whose material draws more than one texture layer (eyes, eye glow, tabards) carry a <strong>second UV map</strong>, <code>UVMap2</code>, that the second layer samples. It is imported alongside <code>UVMap</code> and written back on export; single-layer geosets have none. If you build a two-layer material on your own mesh, give it a <code>UVMap2</code> or the second layer will sample nothing.</p>
+<p>Each imported material also remembers batch data that has no Blender control but that the game needs: the batch flags (<code>0x10</code> on ordinary body batches, <code>0x80</code> on eye glow), which UV map each layer samples, and any <strong>texture transform</strong> on a layer. Eye glow on every retail character is a second texture layer scrolling on a looping global sequence; that transform, and the colour tracks some models use to tint or fade parts, are carried into the export unchanged, so glow, tints and fades survive a round trip. Materials you make from scratch get the retail defaults.</p>
 
 <h3 id="texture-fid">Texture by FileDataID</h3>
 <p>With <span class="ui">File (BLP)</span> selected, enter the BLP's id in <span class="ui">Texture FileDataID</span>. It is written to the model's texture id table and is how retail clients find the file.</p>
@@ -351,39 +362,171 @@
 <h3 id="naming-actions">Naming your own actions</h3>
 <p>New Model export recognises actions whose name ends in a WoW animation name, optionally followed by a variation number: <code>Stand</code>, <code>Rig_Run</code>, <code>Rig_Attack1H_1</code>, <code>Rig_EmoteDance</code>. A trailing <code>_remap</code> from retargeting tools is ignored. Variations of the same animation are linked and given equal play weight automatically.</p>
 
-<h3 id="bounding-box">Bounding box and camera framing</h3>
-<p>The <code>M2_BoundingBox</code> wireframe is the model's render bounds. The game frames portrait and character-screen cameras around its centre. Move, scale or edit its corners and export writes the new box. Raise it to make the camera look higher, lower it to look lower. Delete the object and bounds are computed from the vertices instead.</p>
-<figure class="shot" data-shot="bounding-box" data-hint="A model with the M2_BoundingBox wireframe selected and visibly adjusted around it.">
-  <figcaption>The editable bounding box.</figcaption>
+<h3 id="bounding-box">Bounding boxes and camera framing</h3>
+<p>Import creates two editable wireframe boxes, both read straight from the file:</p>
+<ul>
+  <li><code>M2_CollisionBox</code>: the collision box. On retail characters this is body-sized (about 0.3 m wide and 2 m tall), and it is what the <strong>character and transmog screens frame their camera from</strong>. If the model looks far away or off-centre there, this is the box to move or resize.</li>
+  <li><code>M2_BoundingBox</code>: the render bounds. Retail characters store a very large box here (it covers every animation) so the model is never culled mid-move. Leave it alone unless parts of the model vanish at the edge of the screen.</li>
+</ul>
+<p>Move, scale or edit either box and export writes the new values. Boxes you do not touch are written back exactly as the file had them, including their sphere radii. Delete a box object and that box is computed from the vertices instead.</p>
+<figure class="shot" data-shot="bounding-box" data-hint="A character with both boxes visible: the small body-sized M2_CollisionBox selected, and the much larger M2_BoundingBox around it.">
+  <figcaption>The collision box (small) and render bounds (large).</figcaption>
 </figure>
 
 <h3 id="attachments-events">Attachments, events and cameras</h3>
-<p>Attachment and event empties are parented to their bones, so move them in the viewport to reposition weapon mounts, spell origins or footstep triggers. Imported cameras keep their target empty, clip distances, field of view and animation.</p>
+<p>Attachment and event empties are parented to their bones, so move them in the viewport to reposition weapon mounts, spell origins or footstep triggers.</p>
+<p>Each M2 camera (portrait, character info) is imported as a camera riding on a small aim empty (<code>…_camrig_…</code>) that points at a target empty, with world Z up, plus its clip distances, field of view and animation. Move the aim empty to move the camera and the target empty to change what it looks at; the camera object's own Z rotation is the roll. Export writes them back exactly, including the camera lookup table the client uses to pick the character-screen camera.</p>
 
 <!-- ============================================================ -->
-<h2 id="physics">Physics <span class="badge">Coming soon</span></h2>
-<p class="section-intro">Cloth, chain and jiggle physics with <code>.phys</code> import and export. In development, not ready to use yet.</p>
+<h2 id="physics">Physics</h2>
+<p class="section-intro">Give a model cloth, chains and soft body parts that move in game: rig bones in one click, preview the motion on the skeleton in Blender, tune it, and export it inside the model.</p>
 
-<div class="wip">
-  <p class="wip-title">Work in progress</p>
-  <p>Physics support is still being built. An <span class="ui">M2 Physics</span> panel and physics options appear in the add-on, but they are experimental: results are unreliable and files written by them may not behave correctly in game. Full documentation will be added here when the feature is ready.</p>
-</div>
+<h3 id="physics-quickstart">Quick start</h3>
+<p>The whole workflow, from a retail model to a moving one in game.</p>
+<ol class="steps">
+  <li><strong>Import the original model.</strong> <span class="path">File <span class="sep">&rsaquo;</span> Import <span class="sep">&rsaquo;</span> WoW Model (.m2)</span> with the defaults. Start from the retail file, not from an earlier export of your own.</li>
+  <li><strong>Open the panel.</strong> Press <kbd>N</kbd> in the 3D viewport, pick the <span class="ui">M2</span> tab and expand <span class="ui">M2 Physics</span>. If the model already has physics, the top of the panel lists its rig with body and joint counts.</li>
+  <li><strong>Select the bones to animate.</strong> Click the armature, enter <span class="ui">Pose Mode</span> and select the bones. For a hanging chain (cloak, ponytail, tassel) select every bone of the chain but not the bone it hangs from. For a soft body part select just that part's bone or bones.</li>
+  <li><strong>Click a preset</strong> under <span class="ui">Build</span>: <span class="ui">Cloth</span>, <span class="ui">Chain</span>, <span class="ui">Jiggle</span> or <span class="ui">Soft Body</span>. The status bar reports how many bodies were made. Bodies appear on the bones, sized to the mesh they deform, with joint arrows leading to the anchor they hang from.</li>
+  <li><strong>Preview.</strong> Optionally assign a Walk or Run action to the armature first, then click <span class="ui">Start Preview</span>. The timeline plays and the bones follow their simulated bodies. Click <span class="ui">Stop Preview</span> when done.</li>
+  <li><strong>Tune.</strong> Select a joint or a body and adjust it (see <a href="#physics-tuning">Tuning the motion</a>). Preview again.</li>
+  <li><strong>Check and export.</strong> Click <span class="ui">Check Rig</span>, then export the model as usual (<span class="path">File <span class="sep">&rsaquo;</span> Export <span class="sep">&rsaquo;</span> WoW Model (.m2)</span>, New Model). The physics is embedded in the <code>.m2</code>; the status bar confirms it, for example <code>Physics embedded: 3 bodies, 2 joints; bone flag 0x400 on bones 23, 26</code>.</li>
+  <li><strong>Test in game</strong>, then come back and adjust Stiffness, Cone Angle or Drag if it moves too much or too little.</li>
+</ol>
+<figure class="shot wide" data-shot="physics-panel" data-hint="M2 Physics panel beside a model whose rig is visible: amber root, blue spheres or capsules on the rigged bones, joint arrows between them.">
+  <figcaption>A physics rig and the M2 Physics panel.</figcaption>
+</figure>
 
-<h3 id="physics-planned">What is planned</h3>
+<h3 id="physics-overview">How WoW physics works</h3>
+<p>A physics rig is made of <strong>bodies</strong> and <strong>joints</strong>. Each body is attached to one bone and built from simple shapes (spheres, capsules, boxes). Joints link bodies and decide how they may move. In game the simulated bodies drive their bones, so the mesh follows.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Body type</th><th>Colour</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Root Anchor</td><td>Amber</td><td>Follows its bone; chains hang from it. Written first in the file.</td></tr>
+    <tr><td>Dynamic</td><td>Blue</td><td>Simulated. Swings, bounces and drives its bone.</td></tr>
+    <tr><td>Anchor / Collider</td><td>Green</td><td>Also follows its bone. Use it as the anchor for a chain hanging from a different bone, or as a collider that dynamic bodies bounce off. Retail rigs have several.</td></tr>
+  </tbody>
+</table></div>
+<p>The rig lives in a collection named <code>&lt;model&gt;_phys</code>. Bodies and joints ride on the skeleton, so they stay in place when you pose, animate or move the character; only while a preview runs do the dynamic bodies move on their own.</p>
+
+<h3 id="physics-panel">The panel, top to bottom</h3>
+<p>The <span class="ui">M2 Physics</span> panel changes with what you have selected. Its fixed parts, in order:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Part</th><th>What it shows or does</th></tr></thead>
+  <tbody>
+    <tr><td>Rig status</td><td>Every rig in the scene with its body and joint counts. The arrow button (<span class="ui">Show Rig</span>) unhides and selects that rig and frames it in the viewport. A rig made by an early build shows an "Old-format rig" warning: delete that collection and re-import the physics or rebuild it.</td></tr>
+    <tr><td>Selected body</td><td>Appears when a body is selected: type, bone, mass, drag, its shapes, <span class="ui">Fit to Mesh</span> and <span class="ui">Make Root Anchor</span>. See <a href="#physics-bodies">Editing a body</a>.</td></tr>
+    <tr><td>Selected joint</td><td>Appears when a joint is selected: type, the two bodies it links, and its limits and spring. See <a href="#physics-tuning">Tuning the motion</a>.</td></tr>
+    <tr><td>Build</td><td>The presets (in Pose Mode), <span class="ui">Add Body</span> / <span class="ui">Add Collider</span>, the shape and radius for new bodies, the joint type for <span class="ui">Connect Selected</span>, and <span class="ui">Delete Selected</span>.</td></tr>
+    <tr><td>Preview</td><td><span class="ui">Start Preview</span> / <span class="ui">Stop Preview</span>, <span class="ui">Bodies Collide With Each Other</span>, and the solver's <span class="ui">Substeps</span> and <span class="ui">Solver Iterations</span>.</td></tr>
+    <tr><td>Export</td><td><span class="ui">Format Version</span>, <span class="ui">Check Rig</span>, <span class="ui">Import .phys</span> / <span class="ui">Export .phys</span>, <span class="ui">Remove Physics Rig</span>, and the physics build number of the add-on (quote it when reporting a problem).</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="physics-import">Importing physics</h3>
+<p>With <span class="ui">Import Physics (.phys)</span> ticked, the importer builds the rig automatically. It looks for physics data in this order:</p>
+<ol class="steps">
+  <li>The file set in <span class="ui">Phys File Override</span>, if any.</li>
+  <li>The physics <strong>embedded in the .m2</strong>. This is how retail models carry it, so most models need no extra file.</li>
+  <li>A <code>&lt;name&gt;.phys</code> file beside the model, or the only <code>.phys</code> in the folder.</li>
+</ol>
+<p>All format versions from 0 to 6 are read. Anything the add-on does not edit is kept, so <strong>a rig you import and export without changing is written back byte for byte.</strong></p>
+<p>To load physics onto a model already in the scene, select its armature and use <span class="ui">Import .phys</span> in the panel. It replaces the armature's current rig.</p>
+<figure class="shot" data-shot="physics-imported-rig" data-hint="A freshly imported model with its rig: the status line at the top of the panel showing body and joint counts, and the shapes visible on the model.">
+  <figcaption>An imported rig listed at the top of the panel.</figcaption>
+</figure>
+
+<h3 id="physics-presets">Rigging bones in one click</h3>
+<ol class="steps">
+  <li>Select the armature and enter Pose Mode.</li>
+  <li>Select the bones that should move. For a chain (cloak, ponytail), select the whole chain but not the bone it hangs from. For a soft body part, select just that bone.</li>
+  <li>Under <span class="ui">Build</span>, click a preset.</li>
+</ol>
+<p>Each selected bone gets a body fitted to the mesh it deforms, joined to the body above it. A chain bone gets a capsule along the chain; a single bone such as a breast or an ear gets a shape sitting on the flesh itself. If the rig has no root yet, one is created on the chain's parent bone; a chain hanging from a different bone gets an anchor on that bone.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Preset</th><th>Shape</th><th>Feel</th><th>Good for</th><th>Modelled on</th></tr></thead>
+  <tbody>
+    <tr><td>Cloth</td><td>Capsule</td><td>Swings in a 40° cone with a gentle 1 Hz pull back to rest</td><td>Cloaks, tabards, skirts, hair</td><td>Storm gryphon reins</td></tr>
+    <tr><td>Chain</td><td>Capsule</td><td>Wide 60° swing, ±25° twist, some drag</td><td>Chains, pendants, hanging gear</td><td>Nerubian leather belt</td></tr>
+    <tr><td>Jiggle</td><td>Capsule</td><td>45° cone held by a firm 3 Hz spring, heavy drag</td><td>Ears, tails, small dangling parts</td><td>Netherwing drake dangles</td></tr>
+    <tr><td>Soft Body</td><td>Sphere</td><td>Tight 12° cone, 3 Hz spring, heavy drag: barely moves at idle, nudges with motion</td><td>Chest, belly, thighs</td><td>Drake dangles, tightened</td></tr>
+  </tbody>
+</table></div>
+<p>All presets use <strong>shoulder joints</strong>, the joint type retail uses for hanging parts and the only one confirmed to work on a player model in game.</p>
+<div class="note"><strong>Presets are re-runnable</strong>Clicking a preset on bones that already have bodies converts them in place: joints switch type and values, bodies take the preset's numbers, nothing is duplicated. Use this to switch a part from Jiggle to Soft Body, or to refresh a rig after updating the add-on. Shapes you moved or resized by hand are kept.</div>
+<figure class="shot" data-shot="physics-bone-preset" data-hint="Pose Mode with two soft-body bones selected after clicking Soft Body: a sphere on each, joint arrows to the chest anchor.">
+  <figcaption>Bodies and joints created by a preset.</figcaption>
+</figure>
+
+<h3 id="physics-tuning">Tuning the motion</h3>
+<p>Select a joint (the small arrows where a body meets its anchor) for the first four settings, and the body itself for the last two.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Setting</th><th>On</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td>Cone Angle</td><td>Joint</td><td>How far the part is <em>allowed</em> to swing away from rest, in degrees. The main "how much can it move" control. 12° is subtle, 25° is visibly bouncy, 45°+ flaps.</td></tr>
+    <tr><td>Stiffness (Hz)</td><td>Joint</td><td>The spring that pulls the part back to rest. Higher holds firmer against wind, movement and collisions; lower swings bigger and softer. Retail uses 1 to 3. Below about 1.5 the part starts drifting with the wind at idle; at 0 nothing holds it at all.</td></tr>
+    <tr><td>Stiffness Damping</td><td>Joint</td><td>How the spring settles. 0.7 settles in about one bounce; 0.4 wobbles two or three times; 1 stops without any overshoot.</td></tr>
+    <tr><td>Twist Min / Max</td><td>Joint</td><td>Rotation about the bone's own axis, in degrees. Not part of bounce; keep it small.</td></tr>
+    <tr><td>Drag</td><td>Body</td><td>Air resistance. Higher calms everything and settles sooner; lower lets movement carry more momentum into the bounce.</td></tr>
+    <tr><td>Mass</td><td>Body</td><td>Total weight. The spring is scaled with it, so on its own it changes little; it matters for how bodies push each other.</td></tr>
+  </tbody>
+</table></div>
+<p>Two starting points beyond the presets:</p>
 <ul>
-  <li>Import a model's <code>.phys</code> file as an editable rigid-body rig.</li>
-  <li>One-click presets that set up cloth, chains and jiggle on selected bones.</li>
-  <li>Colliders, so simulated parts rest against the character.</li>
-  <li>A baked preview that plays the simulation on the skeleton inside Blender.</li>
-  <li>Export back to a <code>.phys</code> the game loads.</li>
+  <li><strong>More bounce:</strong> cone 22, stiffness 2, damping 0.45, drag 3.</li>
+  <li><strong>Hold still against wind or armour:</strong> cone 8, stiffness 5, damping 0.7, drag 8.</li>
 </ul>
+<div class="note"><strong>Wind and armour</strong>The game applies wind to physics bodies, and bodies on different pieces (a belt with physics, a chest piece) share one simulation with the character's, so they push each other. Both are answered by Stiffness: a firm spring turns a shove into a nudge. If a body overlaps armour at rest, reduce its radius a little.</div>
+<figure class="shot" data-shot="physics-joint-settings" data-hint="A joint selected, its blue Z arrow visible, the panel showing Cone Angle, Twist limits, Stiffness (Hz) and Stiffness Damping.">
+  <figcaption>Joint settings that shape the motion.</figcaption>
+</figure>
 
-<h3 id="physics-meantime">In the meantime</h3>
-<p>Models import, edit and export normally without physics. To keep experimental physics data out of your work:</p>
+<h3 id="physics-bodies">Editing a body</h3>
+<p>Select a body to see its settings: <span class="ui">Type</span>, <span class="ui">Bone</span>, <span class="ui">Mass</span>, <span class="ui">Drag</span>, and each shape's geometry (a capsule's <span class="ui">Start</span>, <span class="ui">End</span> and <span class="ui">Radius</span>; a sphere's centre and radius) plus <span class="ui">Friction</span> and <span class="ui">Bounciness</span>.</p>
 <ul>
-  <li>On import, untick <span class="ui">Import Physics (.phys)</span>.</li>
-  <li>On export, leave <span class="ui">Phys FileDataID</span> at 0. A <code>.phys</code> file is only written when the scene contains a Rigid Body World, so a scene without one exports no physics.</li>
+  <li><span class="ui">Fit to Mesh</span> puts the body back on its bone and refits its shape to the vertices that bone deforms.</li>
+  <li><span class="ui">Add Shape</span> gives a body more than one shape; the <span class="ui">X</span> beside a shape removes it.</li>
+  <li><span class="ui">Make Root Anchor</span> makes this body the one written first; the previous root becomes an ordinary anchor.</li>
 </ul>
+<div class="note"><strong>Edit in the viewport too</strong>Move, rotate or scale a body like any object; export measures the rig as it stands and bakes that into the file. Joints can be moved and rotated the same way: the joint sits at the pivot and its blue Z arrow is the axis the part swings around.</div>
+<figure class="shot" data-shot="physics-body-settings" data-hint="A blue dynamic body selected, with the panel showing Type, Bone, Mass, Drag and the shape fields.">
+  <figcaption>Settings for the selected body.</figcaption>
+</figure>
+
+<h3 id="physics-manual">Building by hand</h3>
+<ul>
+  <li><span class="ui">Add Body</span> puts a dynamic body on the active pose bone; <span class="ui">Add Collider</span> adds an anchor. The shape and radius come from the two fields below; a radius of 0 fits one from the mesh or bone.</li>
+  <li><span class="ui">Connect Selected</span> joins two selected bodies with the joint type chosen beside it. Select the parent first and the child last.</li>
+  <li><span class="ui">Delete Selected</span> removes the selected bodies (with their joints) and any selected joints. <span class="ui">Remove Physics Rig</span> deletes the whole rig to start over.</li>
+</ul>
+<div class="table-wrap"><table>
+  <thead><tr><th>Joint type</th><th>Movement</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td>Shoulder</td><td>Swings within a cone about the Z axis, twists within limits, spring back to rest</td><td>Confirmed working in game. Used by all presets.</td></tr>
+    <tr><td>Spherical</td><td>Pivots freely about the point</td><td>Read and written; not tested in game.</td></tr>
+    <tr><td>Weld</td><td>Rigid, or a rotational spring above 0 Hz</td><td>Did <strong>not</strong> work on a player model in testing. Retail uses it on cloth items only.</td></tr>
+    <tr><td>Revolute / Prismatic / Distance</td><td>Hinge / slider / tether</td><td>Read and written from the spec; preview approximate; untested in game.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="physics-preview">Previewing the motion</h3>
+<ol class="steps">
+  <li>Optional: assign a Walk or Run action to the armature to see the rig react to movement.</li>
+  <li>Click <span class="ui">Start Preview</span>. The timeline plays, the rig is simulated, and the simulated bones follow their bodies.</li>
+  <li>Click <span class="ui">Stop Preview</span> to rewind and put the skeleton back. Any edit to the rig stops the preview automatically.</li>
+</ol>
+<p><span class="ui">Bodies Collide With Each Other</span> lets simulated bodies hit one another; it is off by default because side-by-side strips are steadier without it. If small pieces jitter or pass through colliders, raise <span class="ui">Substeps</span>.</p>
+<figure class="shot wide" data-shot="physics-preview" data-hint="An animated GIF works best: the preview running, the soft body or cloth moving while the character walks.">
+  <figcaption>The preview driving the skeleton.</figcaption>
+</figure>
+<div class="warn"><strong>How close is the preview?</strong>The rig's structure, shapes, masses and joint limits are exact. The motion is Blender's solver, not the game's, and the game adds wind, so treat the preview as a guide and fine-tune Stiffness and Drag in game.</div>
+
+<h3 id="physics-export">Exporting physics</h3>
+<p>Exporting the model exports its rig: the physics is <strong>embedded in the <code>.m2</code></strong>, exactly as retail models carry it, so there is nothing extra to register. The export dialog notes "Physics rig found" when a rig is present, and the status bar afterwards reports what was written, for example <code>Physics embedded: 3 bodies, 2 joints; bone flag 0x400 on bones 23, 26</code>.</p>
+<p>The exporter also does two things the game requires: it flags the model as having physics, and it gives every simulated bone bone flag <code>0x400</code> (and removes <code>0x200</code>, so the bone's keyframes no longer override the simulation). A <code>&lt;name&gt;.phys</code> copy is written beside the model for reference.</p>
+<p>Physics is written by <a href="#export-new-model">New Model</a> and <a href="#export-full-custom">Full Custom</a> exports. <a href="#export-patch">Patch</a> mode keeps the target model's own physics and warns that the scene's rig was not written.</p>
+<p>Before exporting, click <span class="ui">Check Rig</span>. It reports problems that would break the rig in game: no anchor, a body without a bone, two bodies driving the same bone, or a body joined to nothing. <span class="ui">Export .phys</span> writes the rig on its own as a file.</p>
+<p>Rigs you build are written as format version 6, the version every retail character and mount rig uses. Imported rigs keep the version they came with; <span class="ui">Format Version</span> in the panel changes it. If a rig was made with an earlier build of the add-on, set it to 6 and re-click its preset before exporting.</p>
 
 <!-- ============================================================ -->
 <h2 id="troubleshooting">Troubleshooting</h2>
@@ -397,8 +540,19 @@
     <tr><td class="wrap">No animations, or only some</td><td>The model stores them in <code>.skel</code> or <code>.anim</code> files that are missing, or <span class="ui">Max Animations</span> is limiting the import.</td></tr>
     <tr><td class="wrap">Parts of the model are invisible in game</td><td>Non-zero geoset ids (see <a href="#geoset-visibility">geoset visibility</a>), or a runtime texture type with Alpha Key blending (see <a href="#texture-types">texture type</a>).</td></tr>
     <tr><td class="wrap">Model is untextured in game</td><td>A File (BLP) material has no FileDataID. Export warns about this. Set it in the panel or use <span class="ui">Texture FileDataID</span> at export.</td></tr>
+    <tr><td class="wrap">Eye glow is dim or washed out in game; tints or fades are missing</td><td>The model was exported with an earlier build that dropped texture transforms and colour tracks. Re-import the original model and export again; the status bar and console show "carried N texture transform(s)".</td></tr>
     <tr><td class="wrap">Animations snap instead of blending</td><td>Blend times are 0. Set them in <a href="#action-panel">M2 Action</a> and re-export.</td></tr>
+    <tr><td class="wrap">The game crashes (ERROR #132, access violation) on the character screen or when the model loads</td><td>The M2 was exported with an earlier build that copied the retail "animations live in .anim / .skel files" header bits onto an embedded model. Export again with the current build. An alias animation pointing at the wrong clip has the same origin; re-import the original model first so the alias links are stamped on the clips.</td></tr>
+    <tr><td class="wrap">Customization pieces (demon hunter horns and blindfolds, worgen transformation arms) are white / untextured in game</td><td>The M2 was exported with an earlier build that left the texture-type lookup (<code>textureIndicesById</code>) empty, so the client could not swap the replaceable skin texture in for those geosets. Export again with the current build; the lookup is rebuilt from the material texture types.</td></tr>
+    <tr><td class="wrap">Some animations play Hands Closed or hold a pose in game</td><td>Alias animations (a sequence that borrows another one's keys) were exported without their link. Re-import the original model with the current build and export again.</td></tr>
+    <tr><td class="wrap">Character looks far away or off-centre in the character / transmog screen</td><td>The collision box is wrong (early add-on builds wrote the huge render bounds into it). Re-import the original model so <code>M2_CollisionBox</code> is body-sized, or resize it by hand, and export again.</td></tr>
     <tr><td class="wrap">Animations look wrong after scaling</td><td>The rig was scaled in Blender. Undo that and use <span class="ui">Export Scale</span>.</td></tr>
+    <tr><td class="wrap">The model imports without a physics rig</td><td>The model may simply have none. Otherwise check that <span class="ui">Import Physics</span> and <span class="ui">Import Skeleton</span> were both ticked, and look for <code>[phys]</code> lines in the System Console.</td></tr>
+    <tr><td class="wrap">Export says "Physics NOT exported"</td><td>The rig failed its check. Run <span class="ui">Check Rig</span> in the M2 Physics panel and fix what it lists.</td></tr>
+    <tr><td class="wrap">Physics shows in game but parts sit on the floor or drift</td><td>The rig was built with an early add-on build. Re-click the preset on the same bones (it converts them in place), set Format Version to 6, and export again.</td></tr>
+    <tr><td class="wrap">Parts wander in the wind or get shoved by armour</td><td>Raise <span class="ui">Stiffness (Hz)</span> on the joints and <span class="ui">Drag</span> on the bodies. See <a href="#physics-tuning">Tuning the motion</a>.</td></tr>
+    <tr><td class="wrap">The panel shows "Old-format rig"</td><td>The rig was made by an earlier version of the add-on. Delete that collection and re-import the model's physics, or rebuild it with the presets.</td></tr>
+    <tr><td class="wrap">Preview jitters or pieces fall through colliders</td><td>Raise <span class="ui">Substeps</span> in the Preview box. Very thin or tiny shapes need more.</td></tr>
     <tr><td class="wrap">Export fails in Patch or Full Custom mode</td><td>Bones are not named <code>bone_NNN</code>, or the source M2 cannot be found. Check the System Console for the paths that were tried.</td></tr>
   </tbody>
 </table></div>
@@ -416,6 +570,7 @@
     <tr><td>Mesh object</td><td><code>m2_order</code>, <code>m2_center_bone</code></td><td>Original submesh order and centre bone</td></tr>
     <tr><td>Action</td><td><code>m2_seq_id</code>, <code>m2_seq_var</code>, <code>m2_seq_flags</code>, <code>m2_seq_duration</code></td><td>Animation id, variation, flags, length in ms</td></tr>
     <tr><td>Action</td><td><code>m2_seq_blend_time</code>, <code>m2_seq_blend_out</code></td><td>Blend in / out in ms</td></tr>
+    <tr><td>Action</td><td><code>m2_seq_alias</code></td><td>Sequence this clip is linked to, as <code>id-variation</code> (alias animations borrow that clip's keys)</td></tr>
     <tr><td>Bone</td><td><code>m2_key_bone_id</code>, <code>m2_bone_flags</code>, <code>m2_name_crc</code></td><td>Identity data the client uses</td></tr>
   </tbody>
 </table></div>
