@@ -529,6 +529,83 @@
 <p>Rigs you build are written as format version 6, the version every retail character and mount rig uses. Imported rigs keep the version they came with; <span class="ui">Format Version</span> in the panel changes it. If a rig was made with an earlier build of the add-on, set it to 6 and re-click its preset before exporting.</p>
 
 <!-- ============================================================ -->
+<h2 id="retarget-m2i">Retarget M2I</h2>
+<p class="section-intro">Bring meshes edited through M2Mod back onto an Elune-imported M2 rig, with the geoset settings, materials and names restored.</p>
+
+<h3 id="retarget-what">What M2I is</h3>
+<p><code>.m2i</code> is the mesh-exchange format of <strong>M2Mod</strong>, a separate World of Warcraft model tool with its own Blender add-on. An M2I round trip keeps the skeleton and the meshes, but it knows nothing about this add-on's data: bone names come back as M2Mod's own names, and the meshes arrive without geoset ids, material settings, batch flags, second UV sets or the <code>m2_*</code> properties the exporter needs. The <span class="ui">Retarget M2I</span> panel (3D Viewport sidebar, <span class="ui">M2</span> tab) moves those meshes onto the rig you imported with Elune and copies everything back from the geosets they replace.</p>
+
+<h3 id="retarget-workflow">Workflow</h3>
+<ol>
+  <li><strong>Import the original M2</strong> with Elune (<span class="ui">File › Import › WoW M2</span>). This is the <em>M2 rig</em>: the reference for bone names, geoset settings and materials. Import its animations too if you want them in the export.</li>
+  <li><strong>Import the <code>.m2i</code></strong> into the same scene with the M2Mod add-on. This is the <em>M2I rig</em>, with the edited meshes as its children.</li>
+  <li><strong>Rotate the M2I skeleton onto the M2 skeleton.</strong> M2Mod imports with a different orientation. Select the M2I armature object and rotate it (object mode, not pose mode) until its bones lie over the M2 rig's bones. The tool keeps every mesh exactly where it sits in the scene and compares shapes by position, so a rig that faces the wrong way ends up with meshes in the wrong place and no geoset matches. Zoom in on the head and hands to confirm the two skeletons coincide.</li>
+  <li><strong>Pick the rigs.</strong> Open <span class="ui">Retarget M2I</span>, set <span class="ui">M2 Rig</span> and <span class="ui">M2I Rig</span>, or select both armatures and click <span class="ui">Use Selected Armatures</span>; the armature that owns geoset meshes becomes the M2 rig.</li>
+  <li><strong>Click <span class="ui">Retarget Meshes onto M2 Rig</span>.</strong> The status bar and the System Console report what was matched.</li>
+  <li><strong>Clean up the scene</strong> (see below), then export as usual.</li>
+</ol>
+<figure class="shot wide" data-shot="retarget-aligned-rigs" data-hint="Viewport in wireframe: the M2 armature and the rotated M2I armature overlapping bone for bone, with the Outliner showing both rigs.">
+  <figcaption>The M2I skeleton rotated onto the M2 skeleton before retargeting.</figcaption>
+</figure>
+
+<h3 id="retarget-does">What the tool does</h3>
+<ol>
+  <li><strong>Bones</strong> are paired by order (bone 1 with bone 1, and so on, which is how M2Mod keeps them) and the M2I bones are renamed to the M2 names. If the two rigs do not have the same number of bones the tool pairs them by rest position instead and says so in the console. Vertex groups and bone parents follow the rename; a group that already had the new name is merged into it.</li>
+  <li><strong>Meshes</strong> parented under the M2I rig, or bound to it only by an armature modifier, are moved under the M2 rig with their world transform kept and their armature modifier pointed at it.</li>
+  <li><strong>Each moved mesh is paired with the geoset it replaces</strong> (see <span class="ui">Match Meshes</span>) and takes over that geoset's object name and mesh name, every <code>m2_*</code> property (geoset id, order, centre bone, and so on), the material slots with their per-face assignment, and any UV set it lacks, such as <code>UVMap2</code> for eye-glow layers.</li>
+  <li><strong>Vertex groups</strong> that still name no M2 bone are re-pointed by the rest position of the bone they belonged to; a mesh whose group names exist nowhere any more takes the replaced geoset's weights by vertex position. Stray weights (a vertex bound to a bone none of its neighbours use, like retail's root-bound eye-glow vertex, or a vertex with no weight at all) are re-weighted from their neighbours.</li>
+  <li>The replaced geoset meshes are deleted and the empty M2I armature removed, so the exporter sees one skeleton.</li>
+</ol>
+
+<h3 id="retarget-options">Panel options</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Option</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><span class="ui">Match Meshes</span></td><td><em>By name, then shape</em> (default): a mesh named like a geoset, suffixes such as <code>.001</code> ignored, takes that geoset; the rest are paired by geometry. <em>By order</em>: meshes in name order against geosets in their M2 order; use it when names and shapes both changed and the M2I rig carries the full set. <em>By name</em> and <em>By shape</em> use one rule only.</td></tr>
+    <tr><td><span class="ui">Shape Tolerance</span></td><td>Largest mean vertex distance (model units) for two meshes to count as the same shape. Raise it a little for meshes that were only smoothed or nudged.</td></tr>
+    <tr><td><span class="ui">Bone Tolerance</span></td><td>Largest head distance accepted as the same bone when bones or vertex groups have to be found by position.</td></tr>
+    <tr><td><span class="ui">Take Over Names</span></td><td>The converted mesh gets the geoset's name; the original gets a <code>.replaced</code> suffix before it is removed.</td></tr>
+    <tr><td><span class="ui">Replaced Geosets</span></td><td><em>Delete</em> (default), <em>Hide</em> or <em>Keep</em> the originals. Hidden meshes still export unless you export with <span class="ui">Selected Only</span>.</td></tr>
+    <tr><td><span class="ui">Remove M2I Rig</span></td><td>Delete the M2I armature once nothing is parented to it.</td></tr>
+    <tr><td><span class="ui">Guess Lost Groups From Weights</span></td><td>Last resort for a vertex group whose bone exists on no armature: it goes to the M2 bone nearest the group's weighted centre.</td></tr>
+    <tr><td><span class="ui">Copy Missing UV Sets</span></td><td>Transfers UV sets the replaced geoset has and the new mesh lacks.</td></tr>
+    <tr><td><span class="ui">Repair Stray Weights</span></td><td>Re-weights vertices that share no bone with their neighbours or carry no weight.</td></tr>
+    <tr><td><span class="ui">Fix Vertex Groups by Bone Position</span></td><td>Runs the vertex-group repair alone on the selected meshes (or all meshes of the M2 rig when nothing is selected). Use it on meshes that were moved onto the rig by hand.</td></tr>
+  </tbody>
+</table></div>
+
+<figure class="shot" data-shot="retarget-panel" data-hint="The Retarget M2I panel in the M2 tab with both rigs picked and the options box open.">
+  <figcaption>The Retarget M2I panel.</figcaption>
+</figure>
+
+<h3 id="retarget-cleanup">Cleaning up after the conversion</h3>
+<p>The exporter reads <em>every</em> object in the scene, so whatever the M2Mod import brought along besides the meshes has to go, or it is exported twice or in place of the real thing. After a successful retarget, check the Outliner for:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Remove</th><th>Keep (created by the Elune import)</th></tr></thead>
+  <tbody>
+    <tr><td class="wrap">Attachment empties from the M2I import. The exporter rebuilds the attachment table from every attachment object it finds, so duplicates or differently placed copies corrupt the table.</td><td class="wrap">The Elune attachment empties named <code>&lt;model&gt;_attach_&lt;name&gt;</code>, carrying the <code>m2_att_id</code> property.</td></tr>
+    <tr><td class="wrap">Cameras and camera targets from the M2I import; a second portrait or character-select camera makes the client pick the wrong one.</td><td class="wrap">The Elune camera rigs <code>&lt;model&gt;_camrig_&lt;label&gt;</code> with their camera and <code>&lt;model&gt;_camtarget_&lt;label&gt;</code> target.</td></tr>
+    <tr><td class="wrap">Any root or helper empty the M2I import created, and the M2I armature itself if <span class="ui">Remove M2I Rig</span> was off.</td><td class="wrap">The event markers <code>&lt;model&gt;_event_&lt;id&gt;</code>, the <code>M2_BoundingBox</code> and <code>M2_CollisionBox</code> helpers, and the physics rig collection if there is one.</td></tr>
+    <tr><td class="wrap">Meshes the report listed as <em>unmatched</em> that you do not want as new geosets. An unmatched mesh has no geoset id and exports as geoset 0 with a default material.</td><td class="wrap">Every mesh that took over a geoset name, and any geoset the M2I file did not carry (they were never replaced).</td></tr>
+    <tr><td class="wrap">Unused materials and images the M2I import added (<span class="ui">File › Clean Up › Purge Unused Data</span> once the objects are gone).</td><td class="wrap">The materials of the M2 import; the converted meshes reference them now.</td></tr>
+  </tbody>
+</table></div>
+<p>Then look at the report line: it lists unmatched meshes, unmatched bones and vertex groups that still name no M2 bone. Fix those before exporting; a vertex group with a foreign name exports as bone 0.</p>
+
+<h3 id="retarget-troubleshooting">Troubleshooting</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Symptom</th><th>Likely cause and fix</th></tr></thead>
+  <tbody>
+    <tr><td class="wrap">Every mesh is reported unmatched</td><td>The M2I skeleton was not rotated onto the M2 skeleton, or the meshes were scaled. Undo the retarget, align the armature objects (their bones must overlap) and run again. If the meshes were heavily edited, switch <span class="ui">Match Meshes</span> to <em>By order</em>.</td></tr>
+    <tr><td class="wrap">Meshes matched but kept their old names</td><td><span class="ui">Take Over Names</span> was off, or the mesh matched nothing. Names only carry over with a match.</td></tr>
+    <tr><td class="wrap">Vertex groups still carry M2Mod bone names</td><td>Run <span class="ui">Fix Vertex Groups by Bone Position</span> on the meshes. Leave the M2I armature (or a copy of it) in the file while doing so: the tool looks the old names up on any armature to find where each bone stood.</td></tr>
+    <tr><td class="wrap">Eye glow lost its animation after export</td><td>The glow layers sample <code>UVMap2</code>, which M2I drops. Keep <span class="ui">Copy Missing UV Sets</span> on; it is restored from the replaced geoset.</td></tr>
+    <tr><td class="wrap">Mesh deforms wrongly in one spot, or a vertex stays behind</td><td>A stray or unweighted vertex. Keep <span class="ui">Repair Stray Weights</span> on, or run <span class="ui">Fix Vertex Groups by Bone Position</span>.</td></tr>
+    <tr><td class="wrap">Export has doubled attachments or the wrong camera</td><td>Leftover M2I attachment empties or cameras. See <a href="#retarget-cleanup">cleaning up</a>.</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
 <h2 id="troubleshooting">Troubleshooting</h2>
 <p class="section-intro">Common problems and where to look.</p>
 
@@ -553,6 +630,7 @@
     <tr><td class="wrap">Parts wander in the wind or get shoved by armour</td><td>Raise <span class="ui">Stiffness (Hz)</span> on the joints and <span class="ui">Drag</span> on the bodies. See <a href="#physics-tuning">Tuning the motion</a>.</td></tr>
     <tr><td class="wrap">The panel shows "Old-format rig"</td><td>The rig was made by an earlier version of the add-on. Delete that collection and re-import the model's physics, or rebuild it with the presets.</td></tr>
     <tr><td class="wrap">Preview jitters or pieces fall through colliders</td><td>Raise <span class="ui">Substeps</span> in the Preview box. Very thin or tiny shapes need more.</td></tr>
+    <tr><td class="wrap">Meshes brought back from M2Mod export without geoset ids, materials or names</td><td>Do not export them as they arrive: run <a href="#retarget-m2i">Retarget M2I</a> so they take over the settings of the geosets they replace, then clean up the scene as that section describes.</td></tr>
     <tr><td class="wrap">Export fails in Patch or Full Custom mode</td><td>Bones are not named <code>bone_NNN</code>, or the source M2 cannot be found. Check the System Console for the paths that were tried.</td></tr>
   </tbody>
 </table></div>
